@@ -6,14 +6,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Роздача файлів сайту з папки public
 app.use(express.static('public')); 
 
-const sequelize = new Sequelize('oop_lab4_db', 'postgres', '14881488', {
-    host: 'localhost',
-    dialect: 'postgres',
+// ==========================================
+// 1. ПІДКЛЮЧЕННЯ ДО БД (ТЕПЕР SQLITE!)
+// ==========================================
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: './database.sqlite', // Уся база буде збережена у цей файл
     logging: false
 });
 
+// ==========================================
+// 2. МОДЕЛІ (TASK 1 - Варіант 2)
+// ==========================================
 const Sensor = sequelize.define('Sensor', {
     magnitudeType: { type: DataTypes.INTEGER, allowNull: false },
     minRange: { type: DataTypes.FLOAT, allowNull: false },
@@ -34,6 +41,9 @@ Channel.hasMany(Device, { as: 'devices', onDelete: 'CASCADE' });
 Device.belongsTo(Channel);
 Device.belongsTo(Sensor);
 
+// ==========================================
+// 3. МОДЕЛІ (TASK 2 - Варіант 8)
+// ==========================================
 const Participant = sequelize.define('Participant', {
     firstName: { type: DataTypes.STRING, allowNull: false },
     lastName: { type: DataTypes.STRING, allowNull: false },
@@ -53,9 +63,14 @@ Competition.hasMany(Performance, { as: 'performances', onDelete: 'CASCADE' });
 Performance.belongsTo(Competition);
 Performance.belongsTo(Participant);
 
+// Синхронізація БД
 sequelize.sync({ alter: true }).then(() => {
-    console.log("PostgreSQL: Всі таблиці створено та оновлено!");
+    console.log("SQLite: Базу даних успішно ініціалізовано у файлі database.sqlite!");
 });
+
+// =====================================================================
+// API МАРШРУТИ: TASK 1 (Канали, Пристрої, Датчики)
+// =====================================================================
 
 app.get('/api/task1/channels', async (req, res) => {
     try {
@@ -120,6 +135,11 @@ app.put('/api/task1/devices/:id', async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(400).json({ error: err.message }); }
 });
+
+
+// =====================================================================
+// API МАРШРУТИ: TASK 2 (Змагання, Виступи, Учасники)
+// =====================================================================
 
 app.get('/api/task2/competitions', async (req, res) => {
     try {
@@ -191,6 +211,7 @@ app.put('/api/task2/performances/:id', async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(400).json({ error: err.message }); }
 });
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
