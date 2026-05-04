@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторна 4 - Сайт</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>Лабораторна 4 (Веб-інтерфейс)</h1>
+
+    <h2>Task 1: Вимірювальні канали</h2>
+    <button onclick="loadChannels()">Завантажити канали з БД</button>
+    <button onclick="createTestChannel()">Створити новий тестовий канал</button>
+
+    <div id="channelsList" style="margin-top: 20px;">
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function loadChannels() {
+            const response = await fetch(`${API_URL}/task1/channels`);
+            const channels = await response.json();
+            
+            const listDiv = document.getElementById('channelsList');
+            listDiv.innerHTML = '';
+
+            channels.forEach(ch => {
+                listDiv.innerHTML += `
+                    <div class="box">
+                        <strong>${ch.shortInfo}</strong> <br>
+                        Кількість пристроїв у каналі: ${ch.devicesCount}
+                    </div>
+                `;
+            });
+        }
+
+        // Функція для запису даних (POST)
+        async function createTestChannel() {
+            const newChannel = { name: "Новий канал з Веб-сайту" };
+
+            const response = await fetch(`${API_URL}/task1/channels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newChannel)
+            });
+
+            if (response.ok) {
+                alert("Канал успішно створено!");
+                loadChannels();
+            }
+        }
+    </script>
+</body>
+</html>
