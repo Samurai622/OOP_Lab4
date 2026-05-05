@@ -1,0 +1,6 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OOP_Lab4.JsonWindow"
+        Title="Перегляд JSON" Width="600" Height="400" WindowStartupLocation="CenterOwner">
+  <TextBox x:Name="JsonTextBox" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" Margin="10" FontFamily="Consolas, Monospace"/>
+</Window>

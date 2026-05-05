@@ -234,43 +234,52 @@ namespace OOP_Lab4.Tasks.Task1
        }
 
        private async Task EditDeviceAsync()
-       {
-           if (OpenEditDialogAsync == null || SelectedDevice == null) return;
+        {
+            if (OpenEditDialogAsync == null || SelectedDevice == null) return;
 
-           var editModel = new DeviceModel
-           {
-               Id = SelectedDevice.Id,
-               LocationNumber = SelectedDevice.LocationNumber,
-               CalibrationDate = DateTimeOffset.Parse(SelectedDevice.CalibrationDate)
-           };
-           editModel.Sensor.MagType = (MagnitudeType)SelectedDevice.Sensor.MagnitudeType;
-           editModel.Sensor.MinRange = SelectedDevice.Sensor.MinRange;
-           editModel.Sensor.MaxRange = SelectedDevice.Sensor.MaxRange;
-           editModel.Sensor.CurrentValue = SelectedDevice.Sensor.CurrentValue;
+            var editModel = new DeviceModel
+            {
+                Id = SelectedDevice.Id,
+                LocationNumber = SelectedDevice.LocationNumber,
+                CalibrationDate = DateTimeOffset.Parse(SelectedDevice.CalibrationDate)
+            };
+            
+            if (SelectedDevice.Sensor != null)
+            {
+                editModel.Sensor.MagType = (MagnitudeType)SelectedDevice.Sensor.MagnitudeType;
+                editModel.Sensor.MinRange = SelectedDevice.Sensor.MinRange;
+                editModel.Sensor.MaxRange = SelectedDevice.Sensor.MaxRange;
+                editModel.Sensor.CurrentValue = SelectedDevice.Sensor.CurrentValue;
+            }
 
-           var result = await OpenEditDialogAsync(editModel);
-           if (result != null)
-           {
-               try {
-                   // Оновлюємо і сенсор
-                   await _apiService.CreateSensorAsync(new SensorDto {
-                       Id = SelectedDevice.SensorId ?? 0, // Fake update by id? Node backend actually needs Put for sensor, but since API missing it, we send new or leave it.
-                       // Для спрощення: оновимо тільки пристрій, або треба додати UpdateSensor в Node.
-                       // В межах завдання - оновлюємо Device.
-                   });
+            var result = await OpenEditDialogAsync(editModel);
+            if (result != null)
+            {
+                try {
+                    // ФІКС: Оновлюємо існуючий сенсор з УСІМА правильними даними
+                    if (SelectedDevice.SensorId.HasValue)
+                    {
+                        await _apiService.UpdateSensorAsync(SelectedDevice.SensorId.Value, new SensorDto {
+                            MagnitudeType = (int)result.Sensor.MagType,
+                            MinRange = result.Sensor.MinRange,
+                            MaxRange = result.Sensor.MaxRange,
+                            CurrentValue = result.Sensor.CurrentValue
+                        });
+                    }
 
-                  await _apiService.UpdateDeviceAsync(result.Id, new DeviceDto {
-                       LocationNumber = result.LocationNumber,
-                       CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd"),
-                       ChannelId = SelectedChannel.Id,
-                      
-                       // ДОДАНО ?? 0
-                       SensorId = SelectedDevice.SensorId ?? 0
-                   });
-                   await LoadDevicesForChannelAsync();
-               } catch (Exception ex) { Console.WriteLine($"Помилка: {ex.Message}"); }
-           }
-       }
+                    // Оновлюємо пристрій (без зміни SensorId)
+                    await _apiService.UpdateDeviceAsync(result.Id, new DeviceDto {
+                        LocationNumber = result.LocationNumber,
+                        CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd")
+                    });
+                    
+                    await LoadDevicesForChannelAsync();
+                } catch (Exception ex) { 
+                    SyncStatusMessage = "Помилка валідації!";
+                    Console.WriteLine($"Помилка: {ex.Message}"); 
+                }
+            }
+        }
 
        private async Task DeleteDeviceAsync()
        {

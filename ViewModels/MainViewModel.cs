@@ -1,36 +1,75 @@
+using System.Text.Json;
 using System.Windows.Input;
 using OOP_Lab4.Commands;
 using OOP_Lab4.Services;
-using OOP_Lab4.Tasks.Task1;
-using OOP_Lab4.Tasks.Task2;
+using OOP_Lab4.Tasks.Task1; 
+using OOP_Lab4.Tasks.Task2; 
 
 namespace OOP_Lab4.ViewModels
 {
-   public class MainViewModel : ViewModelBase
-   {
-       private readonly IBrowserService _browserService;
-       private ViewModelBase _currentViewModel;
+    public class MainViewModel : ViewModelBase
+    {
+        private readonly IBrowserService _browserService;
+        private ViewModelBase _currentViewModel;
 
-       public ViewModelBase CurrentViewModel
-       {
-           get => _currentViewModel;
-           set => SetProperty(ref _currentViewModel, value);
-       }
+        public ViewModelBase CurrentViewModel
+        {
+            get => _currentViewModel;
+            set => SetProperty(ref _currentViewModel, value);
+        }
 
-       public ICommand ShowTask1Command { get; }
-       public ICommand ShowTask2Command { get; }
-       public ICommand OpenWebCommand { get; }
+        // ==========================================
+        // Змінні для підсвічування кнопок (MVVM)
+        // ==========================================
+        private bool _isTask1Active = true;
+        public bool IsTask1Active 
+        { 
+            get => _isTask1Active; 
+            set => SetProperty(ref _isTask1Active, value); 
+        }
 
-       public MainViewModel(IBrowserService browserService)
-       {
-           _browserService = browserService;
-          
-           _currentViewModel = new Task1ViewModel();
+        private bool _isTask2Active = false;
+        public bool IsTask2Active 
+        { 
+            get => _isTask2Active; 
+            set => SetProperty(ref _isTask2Active, value); 
+        }
 
-           ShowTask1Command = new RelayCommand(_ => CurrentViewModel = new Task1ViewModel());
-           ShowTask2Command = new RelayCommand(_ => CurrentViewModel = new Task2ViewModel());
-          
-           OpenWebCommand = new RelayCommand(_ => _browserService.OpenUrl("http://localhost:3000/"));
-       }
-   }
+        public ICommand ShowTask1Command { get; }
+        public ICommand ShowTask2Command { get; }
+        public ICommand OpenWebCommand { get; }
+
+        public MainViewModel(IBrowserService browserService)
+        {
+            _browserService = browserService;
+            
+            // За замовчуванням відкритий Task 1
+            _currentViewModel = new Task1ViewModel(); 
+
+            ShowTask1Command = new RelayCommand(_ => { 
+                CurrentViewModel = new Task1ViewModel();
+                // Коли натиснуто 1, вимикаємо 2
+                IsTask1Active = true; 
+                IsTask2Active = false; 
+            });
+            
+            ShowTask2Command = new RelayCommand(_ => { 
+                CurrentViewModel = new Task2ViewModel();
+                // Коли натиснуто 2, вимикаємо 1
+                IsTask1Active = false; 
+                IsTask2Active = true; 
+            });
+            
+            OpenWebCommand = new RelayCommand(_ => _browserService.OpenUrl("http://localhost:3000/")); 
+        }
+
+        // Метод для генерації JSON (Для наступного етапу)
+        public string GetCurrentJson()
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            if (CurrentViewModel is Task1ViewModel t1) return JsonSerializer.Serialize(t1.Channels, options);
+            if (CurrentViewModel is Task2ViewModel t2) return JsonSerializer.Serialize(t2.Competitions, options);
+            return "{}";
+        }
+    }
 }
