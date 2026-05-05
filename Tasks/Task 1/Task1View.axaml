@@ -1,38 +1,57 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:OOP_Lab4.Tasks.Task1"
-             x:Class="OOP_Lab4.Tasks.Task1.Task1View"
-             x:DataType="vm:Task1ViewModel">
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:vm="clr-namespace:OOP_Lab4.Tasks.Task1"
+            x:Class="OOP_Lab4.Tasks.Task1.Task1View"
+            x:DataType="vm:Task1ViewModel">
 
-  <Grid RowDefinitions="Auto, *, Auto" Margin="10">
-    <StackPanel Grid.Row="0" Margin="0,0,0,10">
-      <TextBlock Text="Виберіть вимірювальний канал:" FontWeight="Bold"/>
-      <ComboBox ItemsSource="{Binding Channels}" SelectedItem="{Binding SelectedChannel}" Width="300">
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding ShortInfo}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-    </StackPanel>
+ <Grid RowDefinitions="Auto, *, Auto" Margin="10">
+  
+   <!-- ВЕРХНЯ ПАНЕЛЬ: Канали -->
+   <StackPanel Grid.Row="0" Margin="0,0,0,10" Spacing="10">
+     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+       <TextBlock Text="Вимірювальний канал:" FontWeight="Bold" VerticalAlignment="Center"/>
+       <ComboBox ItemsSource="{Binding Channels}" SelectedItem="{Binding SelectedChannel}" Width="300">
+         <ComboBox.ItemTemplate>
+           <DataTemplate>
+             <TextBlock Text="{Binding ShortInfo}" />
+           </DataTemplate>
+         </ComboBox.ItemTemplate>
+       </ComboBox>
+      
+       <Button Content="➕ Створити" Command="{Binding AddChannelCommand}" />
+       <Button Content="✏️ Редагувати" Command="{Binding EditChannelCommand}" />
+       <Button Content="🗑 Видалити" Command="{Binding DeleteChannelCommand}" Background="#FF5555" Foreground="White" />
+     </StackPanel>
+   </StackPanel>
 
-    <ListBox Grid.Row="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}">
-      <ListBox.ItemTemplate>
-        <DataTemplate>
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Text="{Binding LocationNumber, StringFormat='Номер місця: {0}'}" />
-            <TextBlock Text="{Binding CalibrationDate, StringFormat='Дата калібрування: {0}'}" />
-            <TextBlock Text="{Binding Sensor.CurrentValue, StringFormat='Поточне значення: {0}'}" />
-          </StackPanel>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
+   <!-- ЦЕНТР: Пристрої (Лістбокс) -->
+   <ListBox Grid.Row="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}">
+     <ListBox.ItemTemplate>
+       <DataTemplate>
+         <StackPanel Orientation="Horizontal" Spacing="10">
+           <TextBlock Text="{Binding LocationNumber, StringFormat='Номер місця: {0}'}" FontWeight="Bold"/>
+           <TextBlock Text="|" />
+           <TextBlock Text="{Binding CalibrationDate, StringFormat='Калібрування: {0}'}" />
+           <TextBlock Text="|" />
+           <TextBlock Text="{Binding Sensor.MagnitudeType, StringFormat='Тип: {0}'}" />
+           <TextBlock Text="{Binding Sensor.CurrentValue, StringFormat='Поточне: {0}'}" Foreground="Blue" />
+         </StackPanel>
+       </DataTemplate>
+     </ListBox.ItemTemplate>
+   </ListBox>
 
-    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,10,0,0" HorizontalAlignment="Right">
-      <!-- Доступно завжди (якщо обрано канал) -->
-      <Button Content="Додати" Command="{Binding AddDeviceCommand}" />
-      <!-- Доступно лише якщо вибрано елемент (перевіряється в CanExecute) -->
-      <Button Content="Редагувати" Command="{Binding EditDeviceCommand}" />
-    </StackPanel>
-  </Grid>
+   <!-- НИЖНЯ ПАНЕЛЬ: Кнопки пристроїв + Синхронізація -->
+   <Grid Grid.Row="2" Margin="0,10,0,0" ColumnDefinitions="Auto, *">
+    
+     <Button Grid.Column="0" Content="🔄 Синхронізувати з БД" Command="{Binding SyncCommand}" Background="#4CAF50" Foreground="White"/>
+    
+     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+       <Button Content="Додати пристрій" Command="{Binding AddDeviceCommand}" />
+       <Button Content="Редагувати пристрій" Command="{Binding EditDeviceCommand}" />
+       <Button Content="Видалити пристрій" Command="{Binding DeleteDeviceCommand}" Background="#FF5555" Foreground="White"/>
+     </StackPanel>
+   </Grid>
+
+ </Grid>
 </UserControl>
+

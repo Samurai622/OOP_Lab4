@@ -1,21 +1,17 @@
 using Avalonia.Controls;
-using System.Threading.Tasks;
 using OOP_Lab4.Models;
 
 namespace OOP_Lab4.Tasks.Task1
 {
-   public partial class DeviceEditWindow : Window
+   public partial class ChannelEditWindow : Window
    {
        private bool _forceClose = false;
 
-       public DeviceEditWindow()
-       {
-           InitializeComponent();
-       }
+       public ChannelEditWindow() { InitializeComponent(); }
 
-       public DeviceEditWindow(DeviceModel model) : this()
+       public ChannelEditWindow(ChannelModel model) : this()
        {
-           var vm = new DeviceEditViewModel(model);
+           var vm = new ChannelEditViewModel(model);
            vm.CloseAction = () =>
            {
                _forceClose = true;

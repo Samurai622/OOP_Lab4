@@ -1,30 +1,39 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:OOP_Lab4.Tasks.Task1"
-        x:Class="OOP_Lab4.Tasks.Task1.DeviceEditWindow"
-        x:DataType="vm:DeviceEditViewModel"
-        Title="Редагування пристрою" Width="400" Height="450"
-        WindowStartupLocation="CenterOwner">
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       xmlns:vm="clr-namespace:OOP_Lab4.Tasks.Task1"
+       x:Class="OOP_Lab4.Tasks.Task1.DeviceEditWindow"
+       x:DataType="vm:DeviceEditViewModel"
+       Title="Редагування пристрою" Width="400" Height="600"
+       WindowStartupLocation="CenterOwner">
 
-  <StackPanel Margin="20" Spacing="10">
-    <TextBlock Text="Номер місця кріплення:" />
-    <TextBox Text="{Binding Model.LocationNumber}" />
+   <!-- Замініть StackPanel у DeviceEditWindow.axaml на цей: -->
+ <StackPanel Margin="20" Spacing="10">
+     <TextBlock Text="Номер місця кріплення:" />
+     <TextBox Text="{Binding Model.LocationNumber}" />
 
-    <TextBlock Text="Дата калібрування:" />
-    <DatePicker SelectedDate="{Binding Model.CalibrationDate}" />
+     <TextBlock Text="Дата калібрування:" />
+     <DatePicker SelectedDate="{Binding Model.CalibrationDate}" />
 
-    <TextBlock Text="Мін. значення датчика:" />
-    <TextBox Text="{Binding Model.Sensor.MinRange}" />   <!-- Додано .Sensor -->
+     <!-- ДОДАНО ВИБІР ТИПУ ВЕЛИЧИНИ -->
+     <TextBlock Text="Тип фізичної величини:" FontWeight="Bold" Margin="0,10,0,0"/>
+     <ComboBox ItemsSource="{Binding MagnitudeTypes}" SelectedItem="{Binding Model.Sensor.MagType}" HorizontalAlignment="Stretch" />
 
-    <TextBlock Text="Макс. значення датчика:" />
-    <TextBox Text="{Binding Model.Sensor.MaxRange}" />   <!-- Додано .Sensor -->
+     <TextBlock Text="Мін. значення датчика:" />
+     <TextBox Text="{Binding Model.Sensor.MinRange}" />
 
-    <TextBlock Text="Поточне значення:" />
-    <TextBox Text="{Binding Model.Sensor.CurrentValue}" /> <!-- Додано .Sensor -->
+     <TextBlock Text="Макс. значення датчика:" />
+     <TextBox Text="{Binding Model.Sensor.MaxRange}" />
 
-    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,20,0,0">
-      <Button Content="Зберегти і закрити" Command="{Binding SaveCommand}" />
-      <Button Content="Скасувати і закрити" Command="{Binding CancelCommand}" />
-    </StackPanel>
-  </StackPanel>
+       <!-- ... ваші текстові поля ... -->
+     <TextBlock Text="Поточне значення:" />
+     <TextBox Text="{Binding Model.Sensor.CurrentValue}" />
+
+     <!-- ДОДАНО: Вивід повідомлення про помилку -->
+     <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontWeight="Bold" TextWrapping="Wrap" Margin="0,10,0,0"/>
+
+     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,20,0,0">
+       <Button Content="Зберегти і закрити" Command="{Binding SaveCommand}" />
+       <Button Content="Скасувати і закрити" Command="{Binding CancelCommand}" />
+     </StackPanel>
+ </StackPanel>
 </Window>

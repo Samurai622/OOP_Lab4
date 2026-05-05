@@ -7,67 +7,77 @@ using OOP_Lab4.Models;
 
 namespace OOP_Lab4.Services
 {
-    // ==========================================
-    // 1. Інтерфейс (ОБОВ'ЯЗКОВО ПОВИНЕН БУТИ ТУТ)
-    // ==========================================
-    public interface ITask1ApiService
-    {
-        Task<List<ChannelDto>> GetChannelsAsync();
-        Task<ChannelDto> GetChannelAsync(int id);
-        Task<SensorDto> CreateSensorAsync(SensorDto sensor);
-        Task<DeviceDto> CreateDeviceAsync(DeviceDto device);
-        Task UpdateDeviceAsync(int id, DeviceDto device);
-    }
+   public interface ITask1ApiService
+   {
+       Task<List<ChannelDto>> GetChannelsAsync();
+       Task<ChannelDto> GetChannelAsync(int id);
+      
+       // ДОДАНО ДЛЯ КАНАЛІВ
+       Task<ChannelDto> CreateChannelAsync(ChannelDto channel);
+       Task UpdateChannelAsync(int id, ChannelDto channel);
+       Task DeleteChannelAsync(int id);
 
-    // ==========================================
-    // 2. Реалізація
-    // ==========================================
-    public class Task1ApiService : ITask1ApiService
-    {
-        private readonly HttpClient _httpClient;
-        private const string BaseUrl = "http://localhost:3000/api/task1";
+       Task<SensorDto> CreateSensorAsync(SensorDto sensor);
+       Task<DeviceDto> CreateDeviceAsync(DeviceDto device);
+       Task UpdateDeviceAsync(int id, DeviceDto device);
+      
+       // ДОДАНО ДЛЯ ПРИСТРОЇВ
+       Task DeleteDeviceAsync(int id);
+   }
 
-        public Task1ApiService()
-        {
-            _httpClient = new HttpClient();
-        }
+   public class Task1ApiService : ITask1ApiService
+   {
+       private readonly HttpClient _httpClient;
+       private const string BaseUrl = "http://localhost:3000/api/task1";
 
-        public async Task<List<ChannelDto>> GetChannelsAsync() =>
-            await _httpClient.GetFromJsonAsync<List<ChannelDto>>($"{BaseUrl}/channels");
+       public Task1ApiService() { _httpClient = new HttpClient(); }
 
-        public async Task<ChannelDto> GetChannelAsync(int id) =>
-            await _httpClient.GetFromJsonAsync<ChannelDto>($"{BaseUrl}/channels/{id}");
+       public async Task<List<ChannelDto>> GetChannelsAsync() => await _httpClient.GetFromJsonAsync<List<ChannelDto>>($"{BaseUrl}/channels");
+       public async Task<ChannelDto> GetChannelAsync(int id) => await _httpClient.GetFromJsonAsync<ChannelDto>($"{BaseUrl}/channels/{id}");
 
-        public async Task<SensorDto> CreateSensorAsync(SensorDto sensor)
-        {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/sensors", sensor);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Node.js Error (Sensors): {error}");
-            }
-            return await response.Content.ReadFromJsonAsync<SensorDto>();
-        }
+       public async Task<ChannelDto> CreateChannelAsync(ChannelDto channel)
+       {
+           var res = await _httpClient.PostAsJsonAsync($"{BaseUrl}/channels", channel);
+           res.EnsureSuccessStatusCode();
+           return await res.Content.ReadFromJsonAsync<ChannelDto>();
+       }
 
-        public async Task<DeviceDto> CreateDeviceAsync(DeviceDto device)
-        {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/devices", device);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Node.js Error (Devices): {error}");
-            }
-            return await response.Content.ReadFromJsonAsync<DeviceDto>();
-        }
+       public async Task UpdateChannelAsync(int id, ChannelDto channel)
+       {
+           var res = await _httpClient.PutAsJsonAsync($"{BaseUrl}/channels/{id}", channel);
+           res.EnsureSuccessStatusCode();
+       }
 
-        public async Task UpdateDeviceAsync(int id, DeviceDto device)
-        {
-            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/devices/{id}", device);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Node.js Error (Update): {error}");
-            }
-        }
-    }
+       public async Task DeleteChannelAsync(int id)
+       {
+           var res = await _httpClient.DeleteAsync($"{BaseUrl}/channels/{id}");
+           res.EnsureSuccessStatusCode();
+       }
+
+       public async Task<SensorDto> CreateSensorAsync(SensorDto sensor)
+       {
+           var res = await _httpClient.PostAsJsonAsync($"{BaseUrl}/sensors", sensor);
+           res.EnsureSuccessStatusCode();
+           return await res.Content.ReadFromJsonAsync<SensorDto>();
+       }
+
+       public async Task<DeviceDto> CreateDeviceAsync(DeviceDto device)
+       {
+           var res = await _httpClient.PostAsJsonAsync($"{BaseUrl}/devices", device);
+           res.EnsureSuccessStatusCode();
+           return await res.Content.ReadFromJsonAsync<DeviceDto>();
+       }
+
+       public async Task UpdateDeviceAsync(int id, DeviceDto device)
+       {
+           var res = await _httpClient.PutAsJsonAsync($"{BaseUrl}/devices/{id}", device);
+           res.EnsureSuccessStatusCode();
+       }
+
+       public async Task DeleteDeviceAsync(int id)
+       {
+           var res = await _httpClient.DeleteAsync($"{BaseUrl}/devices/{id}");
+           res.EnsureSuccessStatusCode();
+       }
+   }
 }

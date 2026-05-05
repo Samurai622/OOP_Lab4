@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 using OOP_Lab4.Commands;
 using OOP_Lab4.Models;
@@ -6,33 +8,49 @@ using OOP_Lab4.ViewModels;
 
 namespace OOP_Lab4.Tasks.Task1
 {
-    public class DeviceEditViewModel : ViewModelBase
-    {
-        public DeviceModel Model { get; }
-        
-        public bool IsSaved { get; private set; } = false;
-        public bool HasChanges { get; set; } = true;
+   public class DeviceEditViewModel : ViewModelBase
+   {
+       public DeviceModel Model { get; }
+       public IEnumerable<MagnitudeType> MagnitudeTypes => Enum.GetValues(typeof(MagnitudeType)).Cast<MagnitudeType>();
 
-        public ICommand SaveCommand { get; }
-        public ICommand CancelCommand { get; }
+       public bool IsSaved { get; private set; } = false;
+       public bool HasChanges { get; set; } = true;
 
-        public Action CloseAction { get; set; }
+       // ДОДАНО: Текст помилки для відображення
+       private string _errorMessage = string.Empty;
+       public string ErrorMessage
+       {
+           get => _errorMessage;
+           set => SetProperty(ref _errorMessage, value);
+       }
 
-        public DeviceEditViewModel(DeviceModel model)
-        {
-            Model = model;
-            
-            SaveCommand = new RelayCommand(_ => {
-                if (!Model.IsValid()) return; 
-                IsSaved = true;
-                HasChanges = false;
-                CloseAction?.Invoke();
-            });
+       public ICommand SaveCommand { get; }
+       public ICommand CancelCommand { get; }
+       public Action CloseAction { get; set; }
 
-            CancelCommand = new RelayCommand(_ => {
-                HasChanges = false;
-                CloseAction?.Invoke();
-            });
-        }
-    }
+       public DeviceEditViewModel(DeviceModel model)
+       {
+           Model = model;
+          
+           SaveCommand = new RelayCommand(_ => {
+               // ПЕРЕВІРКА ПОМИЛОК
+               string error = Model.GetValidationError();
+               if (!string.IsNullOrEmpty(error))
+               {
+                   ErrorMessage = error; // Показуємо помилку на екрані
+                   return;               // Зупиняємо збереження
+               }
+
+               ErrorMessage = string.Empty;
+               IsSaved = true;
+               HasChanges = false;
+               CloseAction?.Invoke();
+           });
+
+           CancelCommand = new RelayCommand(_ => {
+               HasChanges = false;
+               CloseAction?.Invoke();
+           });
+       }
+   }
 }

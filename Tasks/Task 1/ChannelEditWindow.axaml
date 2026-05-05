@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       xmlns:vm="clr-namespace:OOP_Lab4.Tasks.Task1"
+       x:Class="OOP_Lab4.Tasks.Task1.ChannelEditWindow"
+       x:DataType="vm:ChannelEditViewModel"
+       Title="Редагування вимірювального каналу" Width="400" Height="250"
+       WindowStartupLocation="CenterOwner">
+
+ <StackPanel Margin="20" Spacing="10">
+   <TextBlock Text="{Binding Model.OrderNumber, StringFormat='Порядковий номер каналу: {0}'}" FontWeight="Bold"/>
+  
+   <TextBlock Text="Назва каналу:" Margin="0,10,0,0" />
+   <TextBox Text="{Binding Model.Name}" Watermark="Введіть назву..." />
+
+   <!-- ДОДАНО: Вивід повідомлення про помилку -->
+   <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontWeight="Bold" TextWrapping="Wrap" Margin="0,10,0,0"/>
+
+   <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,30,0,0">
+     <Button Content="Зберегти і закрити" Command="{Binding SaveCommand}" />
+     <Button Content="Скасувати і закрити" Command="{Binding CancelCommand}" />
+   </StackPanel>
+ </StackPanel>
+</Window>
