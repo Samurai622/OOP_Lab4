@@ -1,9 +1,52 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:OOP_Lab4.Tasks.Task2"
-             x:DataType="local:Task2ViewModel"
-             x:Class="OOP_Lab4.Tasks.Task2.Task2View">
-    <Grid>
-        <TextBlock Text="{Binding Title}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="Blue"/>
+             xmlns:vm="clr-namespace:OOP_Lab4.Tasks.Task2"
+             x:Class="OOP_Lab4.Tasks.Task2.Task2View"
+             x:DataType="vm:Task2ViewModel">
+  <Grid RowDefinitions="Auto, *, Auto" Margin="10">
+    <!-- Верх: Змагання -->
+    <StackPanel Grid.Row="0" Margin="0,0,0,10" Spacing="10">
+      <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <TextBlock Text="Змагання:" FontWeight="Bold" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding Competitions}" SelectedItem="{Binding SelectedCompetition}" Width="350">
+          <ComboBox.ItemTemplate>
+            <DataTemplate><TextBlock Text="{Binding ShortInfo}" /></DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Content="➕ Створити" Command="{Binding AddCompCmd}" />
+        <Button Content="✏️ Редагувати" Command="{Binding EditCompCmd}" />
+        <Button Content="🗑 Видалити" Command="{Binding DelCompCmd}" Background="#FF5555" Foreground="White" />
+      </StackPanel>
+    </StackPanel>
+    
+    <!-- Центр: Виступи -->
+    <ListBox Grid.Row="1" ItemsSource="{Binding Performances}" SelectedItem="{Binding SelectedPerformance}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding Participant.LastName, StringFormat='Учасник: {0}'}" FontWeight="Bold"/>
+            <TextBlock Text="|" />
+            <TextBlock Text="{Binding IsTeam, StringFormat='Командний: {0}'}" />
+            <TextBlock Text="|" />
+            <TextBlock Text="{Binding ResultScore, StringFormat='Бали: {0}'}" Foreground="Blue" FontWeight="Bold"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- Низ: Кнопки виступів -->
+    <Grid Grid.Row="2" Margin="0,10,0,0" ColumnDefinitions="Auto, Auto, *">
+        
+      <Button Grid.Column="0" Content="🔄 Синхронізувати з БД" Command="{Binding SyncCmd}" Background="#4CAF50" Foreground="White"/>
+      
+      <!-- ДОДАНО: Текст статусу -->
+      <TextBlock Grid.Column="1" Text="{Binding SyncStatusMessage}" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Yellow" FontWeight="Bold"/>
+
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button Content="Додати виступ" Command="{Binding AddPerfCmd}" />
+        <Button Content="Редагувати виступ" Command="{Binding EditPerfCmd}" />
+        <Button Content="Видалити виступ" Command="{Binding DelPerfCmd}" Background="#FF5555" Foreground="White"/>
+      </StackPanel>
     </Grid>
+  </Grid>
 </UserControl>

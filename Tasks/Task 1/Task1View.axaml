@@ -41,16 +41,19 @@
    </ListBox>
 
    <!-- НИЖНЯ ПАНЕЛЬ: Кнопки пристроїв + Синхронізація -->
-   <Grid Grid.Row="2" Margin="0,10,0,0" ColumnDefinitions="Auto, *">
-    
-     <Button Grid.Column="0" Content="🔄 Синхронізувати з БД" Command="{Binding SyncCommand}" Background="#4CAF50" Foreground="White"/>
-    
-     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-       <Button Content="Додати пристрій" Command="{Binding AddDeviceCommand}" />
-       <Button Content="Редагувати пристрій" Command="{Binding EditDeviceCommand}" />
-       <Button Content="Видалити пристрій" Command="{Binding DeleteDeviceCommand}" Background="#FF5555" Foreground="White"/>
-     </StackPanel>
-   </Grid>
+    <Grid Grid.Row="2" Margin="0,10,0,0" ColumnDefinitions="Auto, Auto, *">
+      
+      <Button Grid.Column="0" Content="🔄 Синхронізувати з БД" Command="{Binding SyncCommand}" Background="#4CAF50" Foreground="White"/>
+      
+      <!-- ДОДАНО: Текст статусу -->
+      <TextBlock Grid.Column="1" Text="{Binding SyncStatusMessage}" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Yellow" FontWeight="Bold"/>
+      
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button Content="Додати пристрій" Command="{Binding AddDeviceCommand}" />
+        <Button Content="Редагувати пристрій" Command="{Binding EditDeviceCommand}" />
+        <Button Content="Видалити пристрій" Command="{Binding DeleteDeviceCommand}" Background="#FF5555" Foreground="White"/>
+      </StackPanel>
+    </Grid>
 
  </Grid>
 </UserControl>

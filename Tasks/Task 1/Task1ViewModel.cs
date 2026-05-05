@@ -40,6 +40,13 @@ namespace OOP_Lab4.Tasks.Task1
            }
        }
 
+        // ДОДАНО: Повідомлення про статус синхронізації
+        private string _syncStatusMessage = string.Empty;
+        public string SyncStatusMessage
+        {
+            get => _syncStatusMessage;
+            set => SetProperty(ref _syncStatusMessage, value);
+        }
        // Команди Пристроїв
        public ICommand AddDeviceCommand { get; }
        public ICommand EditDeviceCommand { get; }
@@ -84,28 +91,36 @@ namespace OOP_Lab4.Tasks.Task1
        }
 
        private async Task LoadChannelsAsync()
-       {
-           try {
-               var channels = await _apiService.GetChannelsAsync();
-               Channels.Clear();
+        {
+            try {
+                var channels = await _apiService.GetChannelsAsync();
+                Channels.Clear();
 
-               // Формуємо красиві порядкові номери прямо в C# (1, 2, 3...)
-               int orderCounter = 1;
-               foreach (var c in channels)
-               {
-                   // Переписуємо текст сервера на наш правильний:
-                   c.ShortInfo = $"Вимірювальний канал №{orderCounter} ({c.Name ?? "Без назви"})";
-                  
-                   Channels.Add(c);
-                   orderCounter++; // Збільшуємо номер для наступного
-               }
+                int orderCounter = 1; 
+                foreach (var c in channels) 
+                {
+                    c.ShortInfo = $"Вимірювальний канал №{orderCounter} ({c.Name ?? "Без назви"})";
+                    Channels.Add(c);
+                    orderCounter++; 
+                }
 
-               // Встановлюємо загальну кількість для нашого вікна створення
-               ChannelModel.SetTotalCount(Channels.Count);
-               SelectedChannel = Channels.FirstOrDefault();
-              
-           } catch(Exception ex) { Console.WriteLine($"Помилка синхронізації: {ex.Message}"); }
-       }
+                ChannelModel.SetTotalCount(Channels.Count); 
+                SelectedChannel = Channels.FirstOrDefault();
+
+                // ДОДАНО: Логіка повідомлення
+                if (Channels.Count == 0)
+                    SyncStatusMessage = "База даних пуста!";
+                else
+                    SyncStatusMessage = "Успішно синхронізовано!";
+
+                // Очищаємо повідомлення через 3 секунди (щоб не висіло вічно)
+                _ = Task.Delay(3000).ContinueWith(_ => SyncStatusMessage = string.Empty, TaskScheduler.FromCurrentSynchronizationContext());
+                
+            } catch(Exception ex) { 
+                SyncStatusMessage = "Помилка з'єднання!";
+                Console.WriteLine($"Помилка синхронізації: {ex.Message}"); 
+            }
+        }
 
        private async Task LoadDevicesForChannelAsync()
        {

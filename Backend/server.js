@@ -6,15 +6,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Роздача файлів сайту з папки public
 app.use(express.static('public'));
 
 // ==========================================
-// 1. ПІДКЛЮЧЕННЯ ДО БД (ТЕПЕР SQLITE!)
+// 1. ПІДКЛЮЧЕННЯ ДО БД (SQLite)
 // ==========================================
 const sequelize = new Sequelize({
    dialect: 'sqlite',
-   storage: './database.sqlite', // Уся база буде збережена у цей файл
+   storage: './database.sqlite',
    logging: false
 });
 
@@ -63,7 +62,7 @@ Competition.hasMany(Performance, { as: 'performances', onDelete: 'CASCADE' });
 Performance.belongsTo(Competition);
 Performance.belongsTo(Participant);
 
-// Синхронізація БД
+// Синхронізація БД (alter: true безпечно оновлює існуючу БД)
 sequelize.sync({ alter: true }).then(() => {
    console.log("SQLite: Базу даних успішно ініціалізовано у файлі database.sqlite!");
 });
@@ -74,9 +73,7 @@ sequelize.sync({ alter: true }).then(() => {
 
 app.get('/api/task1/channels', async (req, res) => {
    try {
-       const channels = await Channel.findAll({
-           include: [{ model: Device, as: 'devices' }]
-       });
+       const channels = await Channel.findAll({ include: [{ model: Device, as: 'devices' }] });
        const dtoList = channels.map(ch => ({
            id: ch.id,
            name: ch.name,
@@ -109,6 +106,13 @@ app.put('/api/task1/channels/:id', async (req, res) => {
    } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+app.delete('/api/task1/channels/:id', async (req, res) => {
+   try {
+       await Channel.destroy({ where: { id: req.params.id } });
+       res.json({ success: true });
+   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/task1/sensors', async (req, res) => {
    try { res.json(await Sensor.findAll()); }
    catch (err) { res.status(500).json({ error: err.message }); }
@@ -136,44 +140,16 @@ app.put('/api/task1/devices/:id', async (req, res) => {
    } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-app.put('/api/task1/channels/:id', async (req, res) => {
-   try {
-       await Channel.update(req.body, { where: { id: req.params.id } });
-       res.json({ success: true });
-   } catch (err) { res.status(400).json({ error: err.message }); }
-});
-
-// ДОДАНО: Видалення каналу
-app.delete('/api/task1/channels/:id', async (req, res) => {
-   try {
-       await Channel.destroy({ where: { id: req.params.id } });
-       res.json({ success: true });
-   } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// ... (ваші маршрути для sensors)
-
-app.put('/api/task1/devices/:id', async (req, res) => {
-   try {
-       await Device.update(req.body, { where: { id: req.params.id } });
-       res.json({ success: true });
-   } catch (err) { res.status(400).json({ error: err.message }); }
-});
-
-// ДОДАНО: Видалення пристрою
 app.delete('/api/task1/devices/:id', async (req, res) => {
    try {
        const device = await Device.findByPk(req.params.id);
        if (device) {
            await Device.destroy({ where: { id: req.params.id } });
-           // Також бажано видаляти пов'язаний сенсор
            if(device.SensorId) await Sensor.destroy({ where: { id: device.SensorId }});
        }
        res.json({ success: true });
    } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-
 
 // =====================================================================
 // API МАРШРУТИ: TASK 2 (Змагання, Виступи, Учасники)
@@ -184,23 +160,11 @@ app.get('/api/task2/competitions', async (req, res) => {
        const competitions = await Competition.findAll({
            include: [{ model: Performance, as: 'performances', include: [Participant] }]
        });
-      
-       const dtoList = competitions.map(comp => {
-           let winnerSurname = "Немає виступів";
-           if (comp.performances && comp.performances.length > 0) {
-               const best = comp.performances.reduce((p, c) => (p.resultScore > c.resultScore) ? p : c);
-               winnerSurname = best.Participant ? best.Participant.lastName : "Невідомий";
-           }
-           return {
-               id: comp.id,
-               name: comp.name,
-               shortInfo: `${comp.name} | Переможець: ${winnerSurname}`
-           };
-       });
-       res.json(dtoList);
+       res.json(competitions); 
    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ОСЬ ЦЕЙ МАРШРУТ БУВ ВИПАДКОВО ВИДАЛЕНИЙ! (Тепер він на місці)
 app.get('/api/task2/competitions/:id', async (req, res) => {
    try {
        const comp = await Competition.findByPk(req.params.id, {
@@ -223,6 +187,19 @@ app.put('/api/task2/competitions/:id', async (req, res) => {
    } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+app.delete('/api/task2/competitions/:id', async (req, res) => {
+    try {
+        const compId = req.params.id;
+        const performances = await Performance.findAll({ where: { CompetitionId: compId } });
+        for (const perf of performances) {
+            if (perf.ParticipantId) await Participant.destroy({ where: { id: perf.ParticipantId } });
+            await perf.destroy();
+        }
+        await Competition.destroy({ where: { id: compId } });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/task2/participants', async (req, res) => {
    try { res.json(await Participant.findAll()); }
    catch (err) { res.status(500).json({ error: err.message }); }
@@ -231,6 +208,13 @@ app.get('/api/task2/participants', async (req, res) => {
 app.post('/api/task2/participants', async (req, res) => {
    try { res.json(await Participant.create(req.body)); }
    catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.put('/api/task2/participants/:id', async (req, res) => {
+   try {
+       await Participant.update(req.body, { where: { id: req.params.id } });
+       res.json({ success: true });
+   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
 app.get('/api/task2/performances', async (req, res) => {
@@ -250,6 +234,16 @@ app.put('/api/task2/performances/:id', async (req, res) => {
    } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+app.delete('/api/task2/performances/:id', async (req, res) => {
+    try {
+        const perf = await Performance.findByPk(req.params.id);
+        if (perf) {
+            if (perf.ParticipantId) await Participant.destroy({ where: { id: perf.ParticipantId } });
+            await perf.destroy();
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {
