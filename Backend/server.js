@@ -24,7 +24,8 @@ function sendError(res, err) {
 // ==========================================
 const sequelize = new Sequelize({
    dialect: 'sqlite',
-   storage: './database.sqlite',
+   // Якщо Railway дасть шлях DB_PATH, беремо його. Якщо ні - локальний файл.
+   storage: process.env.DB_PATH || './database.sqlite', 
    logging: false
 });
 
@@ -304,7 +305,7 @@ app.delete('/api/task2/performances/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-   console.log(`Node.js Сервер працює на http://localhost:${PORT}`);
+   console.log(`Node.js Сервер працює!`);
 });

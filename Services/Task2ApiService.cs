@@ -28,7 +28,7 @@ namespace OOP_Lab4.Services
     public class Task2ApiService : ITask2ApiService
     {
         private readonly HttpClient _httpClient = new();
-        private const string BaseUrl = "http://localhost:3000/api/task2";
+        private string BaseUrl => $"{AppConfig.ApiBaseUrl}/task2";
 
         private async Task EnsureSuccess(HttpResponseMessage response)
         {

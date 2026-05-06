@@ -2,9 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "preinstall": "npm install --build-from-source sqlite3"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "keywords": [],
   "author": "",
@@ -13,8 +17,6 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "pg": "^8.20.0",
-    "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.8",
     "sqlite3": "^6.0.1"
   }
