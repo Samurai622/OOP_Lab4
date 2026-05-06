@@ -144,8 +144,10 @@ namespace OOP_Lab4.Models
 
        public string GetValidationError()
        {
-           if (LocationNumber <= 0)
-               return "Номер місця кріплення має бути додатнім числом (більше 0).";
+            if (LocationNumber <= 0)
+                return "Номер місця кріплення має бути додатнім числом (більше 0).";
+            if (CalibrationDate > DateTimeOffset.Now)
+                return "Дата калібрування не може бути в майбутньому.";
               
            // Перевіряємо також вкладений датчик
            return Sensor.GetValidationError();
