@@ -6,9 +6,8 @@
         xmlns:conv="using:OOP_Lab4.Converters" 
         x:Class="OOP_Lab4.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="OOP_Lab4 - Вибір завдань" Width="950" Height="550">
+        Title="OOP_Lab4 - Вибір завдань" Width="1150" Height="550">
 
-    <!-- ДОДАНО: Реєстрація конвертера -->
     <Window.Resources>
         <conv:BoolToColorConverter x:Key="ColorConverter" />
     </Window.Resources>
@@ -28,14 +27,12 @@
             <StackPanel Spacing="10">
                 <TextBlock Text="Меню завдань" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" />
                 
-                <!-- ДОДАНО: Background="{Binding IsTask1Active, Converter={StaticResource ColorConverter}}" -->
                 <Button Content="Завдання 1 (Варіант 2)" 
                         Command="{Binding ShowTask1Command}" 
                         Background="{Binding IsTask1Active, Converter={StaticResource ColorConverter}}"
                         Foreground="White"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         
-                <!-- ДОДАНО: Background="{Binding IsTask2Active, Converter={StaticResource ColorConverter}}" -->
                 <Button Content="Завдання 2 (Варіант 8)" 
                         Command="{Binding ShowTask2Command}" 
                         Background="{Binding IsTask2Active, Converter={StaticResource ColorConverter}}"
@@ -48,25 +45,21 @@
                         Background="#4CAF50" Foreground="White" 
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
 
-                <!-- Кнопки JSON (Підготували місце для останнього кроку) -->
                 <Button Content="Показати JSON" Click="ShowJson_Click"
                         Background="#FF9800" Foreground="White" Margin="0,20,0,0"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                 
-                <!-- ... ваші попередні кнопки (Переглянути в веб, Показати JSON і т.д.) ... -->
                 <Button Content="Зберегти JSON в файл" Click="SaveJson_Click"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
 
                 <Border Height="1" Background="Gray" Margin="0,10" />
 
-                <!-- ДОДАНО: Кнопка зміни БД -->
                 <Button Content="Змінити базу даних" Click="ChangeDb_Click"
                         Background="#607D8B" Foreground="White"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
             </StackPanel>
         </Border>
 
-        <!-- Основна робоча область -->
         <Border Grid.Column="1" Padding="20">
             <ContentControl Content="{Binding CurrentViewModel}" />
         </Border>

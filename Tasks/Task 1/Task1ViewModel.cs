@@ -40,7 +40,7 @@ namespace OOP_Lab4.Tasks.Task1
            }
        }
 
-        // ДОДАНО: Повідомлення про статус синхронізації
+        // Повідомлення про статус синхронізації
         private string _syncStatusMessage = string.Empty;
         public string SyncStatusMessage
         {
@@ -107,7 +107,7 @@ namespace OOP_Lab4.Tasks.Task1
                 ChannelModel.SetTotalCount(Channels.Count); 
                 SelectedChannel = Channels.FirstOrDefault();
 
-                // ДОДАНО: Логіка повідомлення
+                // Логіка повідомлення
                 if (Channels.Count == 0)
                     SyncStatusMessage = "База даних пуста!";
                 else
@@ -174,7 +174,7 @@ namespace OOP_Lab4.Tasks.Task1
            // Вираховуємо поточний порядковий номер каналу (його позиція у списку + 1)
            int currentOrderNumber = Channels.IndexOf(SelectedChannel) + 1;
 
-           // ВИПРАВЛЕНО: Використовуємо новий конструктор, який НЕ збільшує статичний лічильник
+           // Використовуємо новий конструктор, який НЕ збільшує статичний лічильник
            var editModel = new ChannelModel(currentOrderNumber)
            {
                Id = SelectedChannel.Id,

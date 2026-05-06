@@ -17,7 +17,6 @@ namespace OOP_Lab4.Services
 
         Task<ParticipantDto> CreateParticipantAsync(ParticipantDto part);
         
-        // ОСЬ МЕТОД, ЯКИЙ ЗАГУБИВСЯ:
         Task UpdateParticipantAsync(int id, ParticipantDto part); 
         
         Task<PerformanceDto> CreatePerformanceAsync(PerformanceDto perf);
@@ -59,7 +58,6 @@ namespace OOP_Lab4.Services
             return await r.Content.ReadFromJsonAsync<ParticipantDto>() ?? new();
         }
 
-        // ОСЬ ЙОГО РЕАЛІЗАЦІЯ:
         public async Task UpdateParticipantAsync(int id, ParticipantDto part)
         {
             var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/participants/{id}", part);

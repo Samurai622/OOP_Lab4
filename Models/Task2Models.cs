@@ -24,7 +24,6 @@ namespace OOP_Lab4.Models
         [JsonPropertyName("isTeam")] public bool IsTeam { get; set; }
         [JsonPropertyName("resultScore")] public double ResultScore { get; set; }
         
-        // ДОДАНО JsonIgnore: щоб C# не відправляв ці поля, коли ми їх не вказуємо!
         [JsonPropertyName("CompetitionId")] 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? CompetitionId { get; set; }
@@ -45,7 +44,7 @@ namespace OOP_Lab4.Models
         public int Id { get; set; }
         [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
         
-        // ФІКС 400 ПОМИЛКИ: Не відправляємо порожні поля
+        // Не відправляємо порожні поля
         [JsonPropertyName("shortInfo")] 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ShortInfo { get; set; }

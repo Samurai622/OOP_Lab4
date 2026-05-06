@@ -17,7 +17,7 @@ namespace OOP_Lab4.Models
    public class SensorDto
    {
        [JsonPropertyName("id")]
-       [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] // ДОДАНО: Не відправляти ID, якщо він 0
+       [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] // Не відправляти ID, якщо він 0
        public int Id { get; set; }
       
        [JsonPropertyName("magnitudeType")] public int MagnitudeType { get; set; }
@@ -35,18 +35,16 @@ namespace OOP_Lab4.Models
        [JsonPropertyName("locationNumber")] public int LocationNumber { get; set; }
        [JsonPropertyName("calibrationDate")] public string CalibrationDate { get; set; }
       
-       // ДОДАНО ЗНАК ПИТАННЯ (?): Тепер C# не впаде, якщо база поверне null
        [JsonPropertyName("ChannelId")] public int? ChannelId { get; set; }
        [JsonPropertyName("SensorId")] public int? SensorId { get; set; }
       
-       // Тут теж додаємо ?
        [JsonPropertyName("Sensor")] public SensorDto? Sensor { get; set; }
    }
 
    public class ChannelDto
    {
        [JsonPropertyName("id")]
-       [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] // <--- ДОДАЙТЕ ОСЬ ЦЕЙ РЯДОК!
+       [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
        public int Id { get; set; }
       
        [JsonPropertyName("name")] public string Name { get; set; }
@@ -110,10 +108,9 @@ namespace OOP_Lab4.Models
 
    public class DeviceModel
    {
-       public int Id { get; set; } // ID для БД (не з варіанту, але треба для роботи)
-
-       // ЗАКРИТІ ПОЛЯ (за вимогами варіанту)
-       private SensorModel _sensor;         // <--- ОСЬ ТЕ САМЕ ЗАКРИТЕ ПОЛЕ ТИПУ "ДАТЧИК"
+       public int Id { get; set; } // ID для БД 
+       // ЗАКРИТІ ПОЛЯ 
+       private SensorModel _sensor;         // ПОЛЕ ТИПУ ДАТЧИК
        private int _locationNumber;         // Ціле типу з номером місця кріплення
        private DateTimeOffset _calibrationDate; // Типу Date з датою калібрування
 
@@ -159,10 +156,10 @@ namespace OOP_Lab4.Models
    {
        public int Id { get; set; } // Для БД
 
-       // ВИМОГА ВАРІАНТУ: статичне поле з загальною кількістю
+       // статичне поле з загальною кількістю
        private static int _totalChannelsCreated = 0;
 
-       // ВИМОГА ВАРІАНТУ: закрите поле з порядковим номером
+       // закрите поле з порядковим номером
        private int _orderNumber;
 
        private string _name;
@@ -174,7 +171,7 @@ namespace OOP_Lab4.Models
            _orderNumber = _totalChannelsCreated;
        }
 
-       // Конструктор 2: ДОДАНО! Викликається при РЕДАГУВАННІ (НЕ збільшує лічильник)
+       // Конструктор 2: Викликається при РЕДАГУВАННІ (НЕ збільшує лічильник)
        public ChannelModel(int existingOrderNumber)
        {
            _orderNumber = existingOrderNumber;

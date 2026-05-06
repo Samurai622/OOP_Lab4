@@ -16,7 +16,7 @@ namespace OOP_Lab4.Services
         Task DeleteChannelAsync(int id);
 
         Task<SensorDto> CreateSensorAsync(SensorDto sensor);
-        Task UpdateSensorAsync(int id, SensorDto sensor); // ДОДАНО
+        Task UpdateSensorAsync(int id, SensorDto sensor);
         
         Task<DeviceDto> CreateDeviceAsync(DeviceDto device);
         Task UpdateDeviceAsync(int id, DeviceDto device);
@@ -54,7 +54,6 @@ namespace OOP_Lab4.Services
             await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<SensorDto>() ?? new();
         }
         
-        // ДОДАНО РЕАЛІЗАЦІЮ
         public async Task UpdateSensorAsync(int id, SensorDto sensor) 
         { 
             var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/sensors/{id}", sensor); 

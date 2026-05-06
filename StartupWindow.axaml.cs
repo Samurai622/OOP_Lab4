@@ -20,9 +20,6 @@ namespace OOP_Lab4
 
         private void ExternalBtn_Click(object sender, RoutedEventArgs e)
         {
-            // Тут ви можете вписати реальну адресу вашого зовнішнього сервера, 
-            // якщо завантажите server.js на хостинг (наприклад, render.com)
-            // Поки що поставимо заглушку або вашу майбутню адресу:
             AppConfig.ApiBaseUrl = "https://oop-lab4.onrender.com/api"; 
             
             OpenMainWindow();

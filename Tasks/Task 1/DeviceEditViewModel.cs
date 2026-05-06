@@ -16,7 +16,7 @@ namespace OOP_Lab4.Tasks.Task1
        public bool IsSaved { get; private set; } = false;
        public bool HasChanges { get; set; } = true;
 
-       // ДОДАНО: Текст помилки для відображення
+       // Текст помилки для відображення
        private string _errorMessage = string.Empty;
        public string ErrorMessage
        {

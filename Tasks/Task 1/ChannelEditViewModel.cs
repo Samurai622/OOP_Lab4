@@ -18,7 +18,6 @@ namespace OOP_Lab4.Tasks.Task1
 
        public Action CloseAction { get; set; }
 
-       // ...
        private string _errorMessage = string.Empty;
        public string ErrorMessage
        {

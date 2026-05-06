@@ -18,7 +18,7 @@ namespace OOP_Lab4.Tasks.Task1
            if (DataContext is Task1ViewModel vm)
            {
                vm.OpenEditDialogAsync = OpenDialog;
-               // ДОДАНО: Делегат для відкриття вікна створення/редагування КАНАЛУ
+               // Делегат для відкриття вікна створення/редагування КАНАЛУ
                vm.OpenChannelDialogAsync = OpenChannelDialog;
            }
        }
@@ -33,7 +33,7 @@ namespace OOP_Lab4.Tasks.Task1
            return null;
        }
 
-       // ДОДАНО: Метод виклику вікна
+       // Метод виклику вікна
        private async Task<ChannelModel> OpenChannelDialog(ChannelModel model)
        {
            var dialog = new ChannelEditWindow(model);
