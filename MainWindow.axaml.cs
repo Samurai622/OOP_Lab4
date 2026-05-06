@@ -58,5 +58,17 @@ namespace OOP_Lab4
                 }
             }
         }
+
+        private void ChangeDb_Click(object sender, RoutedEventArgs e)
+        {
+            var startupWindow = new StartupWindow();
+            startupWindow.Show();
+
+            if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = startupWindow;
+            }
+            this.Close();
+        }
     }
 }
