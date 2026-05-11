@@ -33,7 +33,7 @@
            <TextBlock Text="|" />
            <TextBlock Text="{Binding CalibrationDate, StringFormat='Калібрування: {0}'}" />
            <TextBlock Text="|" />
-           <TextBlock Text="{Binding Sensor.MagnitudeType, StringFormat='Тип: {0}'}" />
+           <TextBlock Text="{Binding Sensor.MagnitudeTypeName, StringFormat='Тип: {0}'}" />
            <TextBlock Text="{Binding Sensor.CurrentValue, StringFormat='Поточне: {0}'}" Foreground="Blue" />
          </StackPanel>
        </DataTemplate>

@@ -24,6 +24,23 @@ namespace OOP_Lab4.Models
        [JsonPropertyName("minRange")] public double MinRange { get; set; }
        [JsonPropertyName("maxRange")] public double MaxRange { get; set; }
        [JsonPropertyName("currentValue")] public double CurrentValue { get; set; }
+
+       [JsonIgnore]
+       public string MagnitudeTypeName
+        {
+            get
+            {
+                return MagnitudeType switch
+                {
+                    0 => "мм",
+                    1 => "градус (кут)",
+                    2 => "градус (температура)",
+                    3 => "секунда",
+                    4 => "відсоток",
+                    _ => "невідомо"
+                };
+            }
+        }
    }
 
    public class DeviceDto
