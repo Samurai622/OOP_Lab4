@@ -270,7 +270,9 @@ namespace OOP_Lab4.Tasks.Task1
                     // Оновлюємо пристрій (без зміни SensorId)
                     await _apiService.UpdateDeviceAsync(result.Id, new DeviceDto {
                         LocationNumber = result.LocationNumber,
-                        CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd")
+                        CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd"),
+                        ChannelId = SelectedChannel.Id,
+                        SensorId = SelectedDevice.SensorId                     
                     });
                     
                     await LoadDevicesForChannelAsync();
