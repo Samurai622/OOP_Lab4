@@ -17,30 +17,41 @@
         <DataTemplate DataType="{x:Type t2:Task2ViewModel}"><t2:Task2View /></DataTemplate>
     </Window.DataTemplates>
 
-    <Grid ColumnDefinitions="220, *">
-        <Border Grid.Column="0" Background="#2D2D30" Padding="10">
-            <StackPanel Spacing="10">
-                <TextBlock Text="Меню завдань" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" />
-                
-                <Button Content="Завдання 1 (Варіант 2)" Command="{Binding ShowTask1Command}" Background="{Binding IsTask1Active, Converter={StaticResource ColorConverter}}" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                <Button Content="Завдання 2 (Варіант 8)" Command="{Binding ShowTask2Command}" Background="{Binding IsTask2Active, Converter={StaticResource ColorConverter}}" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                
-                <Border Height="1" Background="Gray" Margin="0,10" />
-                
-                <Button Content="Переглянути в веб" Command="{Binding OpenWebCommand}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+    <Grid>
+        <Grid ColumnDefinitions="220, *">
+            <Border Grid.Column="0" Background="#2D2D30" Padding="10">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Меню завдань" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" />
+                    
+                    <Button Content="Завдання 1 (Варіант 2)" Command="{Binding ShowTask1Command}" Background="{Binding IsTask1Active, Converter={StaticResource ColorConverter}}" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    <Button Content="Завдання 2 (Варіант 8)" Command="{Binding ShowTask2Command}" Background="{Binding IsTask2Active, Converter={StaticResource ColorConverter}}" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    
+                    <Border Height="1" Background="Gray" Margin="0,10" />
+                    
+                    <Button Content="Переглянути в веб" Command="{Binding OpenWebCommand}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
 
-                <Border Height="1" Background="Gray" Margin="0,10" />
-                <TextBlock Text="Захист від DDoS:" Foreground="Gray" FontSize="12" />
-                <TextBox Text="{Binding AdminPassword}" Watermark="Пароль..." PasswordChar="*"/>
+                    <Button Content="Показати JSON" Click="ShowJson_Click" Background="#FF9800" Foreground="White" Margin="0,20,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    <Button Content="Зберегти JSON в файл" Click="SaveJson_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    
+                    <Border Height="1" Background="Gray" Margin="0,10" />
+                    <Button Content="Змінити базу даних" Click="ChangeDb_Click" Background="#607D8B" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Padding="20">
+                <ContentControl Content="{Binding CurrentViewModel}" />
+            </Border>
+        </Grid>
 
-                <Button Content="Показати JSON" Click="ShowJson_Click" Background="#FF9800" Foreground="White" Margin="0,20,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                <Button Content="Зберегти JSON в файл" Click="SaveJson_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                <Border Height="1" Background="Gray" Margin="0,10" />
-                <Button Content="Змінити базу даних" Click="ChangeDb_Click" Background="#607D8B" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-            </StackPanel>
-        </Border>
-        <Border Grid.Column="1" Padding="20">
-            <ContentControl Content="{Binding CurrentViewModel}" />
-        </Border>
+        <!-- ПЕРЕКРИВАЮЧИЙ ЕКРАН БЛОКУВАННЯ -->
+        <Grid IsVisible="{Binding IsLocked}" Background="#D9000000" ZIndex="100">
+            <Border Background="#2D2D30" CornerRadius="10" Padding="30" Width="450" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="15" VerticalAlignment="Center">
+                    <TextBlock Text="🚨 СИСТЕМА БЕЗПЕКИ" Foreground="#FF5555" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding LockMessage}" Foreground="White" TextWrapping="Wrap" TextAlignment="Center" />
+                    <TextBox Text="{Binding UnlockPassword}" Watermark="Введіть пароль..." PasswordChar="*" HorizontalAlignment="Stretch"/>
+                    <Button Content="РОЗБЛОКУВАТИ" Command="{Binding UnlockCommand}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

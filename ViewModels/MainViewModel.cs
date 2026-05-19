@@ -1,4 +1,8 @@
+using System;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using OOP_Lab4.Commands;
 using OOP_Lab4.Services;
@@ -24,13 +28,17 @@ namespace OOP_Lab4.ViewModels
         private bool _isTask2Active = false;
         public bool IsTask2Active { get => _isTask2Active; set => SetProperty(ref _isTask2Active, value); }
 
-        // ДОДАНО: Прив'язка пароля до AppConfig
-        public string AdminPassword
-        {
-            get => AppConfig.AdminPassword;
-            set { AppConfig.AdminPassword = value; OnPropertyChanged(); }
-        }
+        // ЗМІННІ ДЛЯ ЕКРАНУ БЛОКУВАННЯ
+        private bool _isLocked = false;
+        public bool IsLocked { get => _isLocked; set => SetProperty(ref _isLocked, value); }
 
+        private string _unlockPassword = "";
+        public string UnlockPassword { get => _unlockPassword; set => SetProperty(ref _unlockPassword, value); }
+
+        private string _lockMessage = "Увага! Сервер заблокував ваш IP через підозру на DDoS.\nВведіть пароль адміністратора для скидання лімітів.";
+        public string LockMessage { get => _lockMessage; set => SetProperty(ref _lockMessage, value); }
+
+        public ICommand UnlockCommand { get; }
         public ICommand ShowTask1Command { get; }
         public ICommand ShowTask2Command { get; }
         public ICommand OpenWebCommand { get; }
@@ -39,6 +47,10 @@ namespace OOP_Lab4.ViewModels
         {
             _browserService = browserService;
             _currentViewModel = new Task1ViewModel(); 
+
+            AppConfig.OnDdosBlocked = () => IsLocked = true;
+
+            UnlockCommand = new RelayCommand(async _ => await TryUnlockAsync());
 
             ShowTask1Command = new RelayCommand(_ => { 
                 CurrentViewModel = new Task1ViewModel();
@@ -54,6 +66,33 @@ namespace OOP_Lab4.ViewModels
                 string webUrl = AppConfig.ApiBaseUrl.Replace("/api", "");
                 _browserService.OpenUrl(webUrl); 
             }); 
+        }
+
+        private async Task TryUnlockAsync()
+        {
+            try
+            {
+                using var client = new HttpClient();
+                var response = await client.PostAsJsonAsync($"{AppConfig.ApiBaseUrl}/unlock", new { password = UnlockPassword });
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    IsLocked = false;
+                    UnlockPassword = "";
+                    LockMessage = "Увага! Сервер заблокував ваш IP через підозру на DDoS.\nВведіть пароль адміністратора для скидання лімітів.";
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    var error = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    LockMessage = error.GetProperty("error").GetString() ?? "БАН!";
+                }
+                else
+                {
+                    var error = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    LockMessage = error.GetProperty("error").GetString();
+                }
+            }
+            catch (Exception ex) { LockMessage = "Помилка зв'язку з сервером."; }
         }
 
         public string GetCurrentJson()

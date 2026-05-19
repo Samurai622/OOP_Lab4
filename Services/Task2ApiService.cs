@@ -26,18 +26,15 @@ namespace OOP_Lab4.Services
         private readonly HttpClient _httpClient = new();
         private string BaseUrl => $"{AppConfig.ApiBaseUrl}/task2";
 
-        private void PrepareHeaders()
-        {
-            _httpClient.DefaultRequestHeaders.Remove("x-admin-bypass");
-            if (!string.IsNullOrEmpty(AppConfig.AdminPassword))
-            {
-                _httpClient.DefaultRequestHeaders.Add("x-admin-bypass", AppConfig.AdminPassword);
-            }
-        }
-
         private async Task EnsureSuccess(HttpResponseMessage response)
         {
-            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests) throw new Exception("DDOS_BLOCK");
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests) 
+            {
+                AppConfig.OnDdosBlocked?.Invoke();
+                throw new Exception("DDOS_BLOCK");
+            }
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) throw new Exception("BANNED");
+
             if (!response.IsSuccessStatusCode)
             {
                 var err = await response.Content.ReadAsStringAsync();
@@ -45,15 +42,15 @@ namespace OOP_Lab4.Services
             }
         }
 
-        public async Task<List<CompetitionDto>> GetCompetitionsAsync() { PrepareHeaders(); var r = await _httpClient.GetAsync($"{BaseUrl}/competitions"); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<List<CompetitionDto>>() ?? new(); }
-        public async Task<CompetitionDto> GetCompetitionAsync(int id) { PrepareHeaders(); var r = await _httpClient.GetAsync($"{BaseUrl}/competitions/{id}"); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<CompetitionDto>() ?? new(); }
-        public async Task<CompetitionDto> CreateCompetitionAsync(CompetitionDto comp) { PrepareHeaders(); var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/competitions", comp); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<CompetitionDto>() ?? new(); }
-        public async Task UpdateCompetitionAsync(int id, CompetitionDto comp) { PrepareHeaders(); var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/competitions/{id}", comp); await EnsureSuccess(r); }
-        public async Task DeleteCompetitionAsync(int id) { PrepareHeaders(); var r = await _httpClient.DeleteAsync($"{BaseUrl}/competitions/{id}"); await EnsureSuccess(r); }
-        public async Task<ParticipantDto> CreateParticipantAsync(ParticipantDto part) { PrepareHeaders(); var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/participants", part); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<ParticipantDto>() ?? new(); }
-        public async Task UpdateParticipantAsync(int id, ParticipantDto part) { PrepareHeaders(); var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/participants/{id}", part); await EnsureSuccess(r); }
-        public async Task<PerformanceDto> CreatePerformanceAsync(PerformanceDto perf) { PrepareHeaders(); var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/performances", perf); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<PerformanceDto>() ?? new(); }
-        public async Task UpdatePerformanceAsync(int id, PerformanceDto perf) { PrepareHeaders(); var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/performances/{id}", perf); await EnsureSuccess(r); }
-        public async Task DeletePerformanceAsync(int id) { PrepareHeaders(); var r = await _httpClient.DeleteAsync($"{BaseUrl}/performances/{id}"); await EnsureSuccess(r); }
+        public async Task<List<CompetitionDto>> GetCompetitionsAsync() { var r = await _httpClient.GetAsync($"{BaseUrl}/competitions"); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<List<CompetitionDto>>() ?? new(); }
+        public async Task<CompetitionDto> GetCompetitionAsync(int id) { var r = await _httpClient.GetAsync($"{BaseUrl}/competitions/{id}"); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<CompetitionDto>() ?? new(); }
+        public async Task<CompetitionDto> CreateCompetitionAsync(CompetitionDto comp) { var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/competitions", comp); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<CompetitionDto>() ?? new(); }
+        public async Task UpdateCompetitionAsync(int id, CompetitionDto comp) { var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/competitions/{id}", comp); await EnsureSuccess(r); }
+        public async Task DeleteCompetitionAsync(int id) { var r = await _httpClient.DeleteAsync($"{BaseUrl}/competitions/{id}"); await EnsureSuccess(r); }
+        public async Task<ParticipantDto> CreateParticipantAsync(ParticipantDto part) { var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/participants", part); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<ParticipantDto>() ?? new(); }
+        public async Task UpdateParticipantAsync(int id, ParticipantDto part) { var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/participants/{id}", part); await EnsureSuccess(r); }
+        public async Task<PerformanceDto> CreatePerformanceAsync(PerformanceDto perf) { var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/performances", perf); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<PerformanceDto>() ?? new(); }
+        public async Task UpdatePerformanceAsync(int id, PerformanceDto perf) { var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/performances/{id}", perf); await EnsureSuccess(r); }
+        public async Task DeletePerformanceAsync(int id) { var r = await _httpClient.DeleteAsync($"{BaseUrl}/performances/{id}"); await EnsureSuccess(r); }
     }
 }
