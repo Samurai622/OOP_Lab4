@@ -14,10 +14,8 @@ namespace OOP_Lab4.Services
         Task<ChannelDto> CreateChannelAsync(ChannelDto channel);
         Task UpdateChannelAsync(int id, ChannelDto channel);
         Task DeleteChannelAsync(int id);
-
         Task<SensorDto> CreateSensorAsync(SensorDto sensor);
-        Task UpdateSensorAsync(int id, SensorDto sensor);
-        
+        Task UpdateSensorAsync(int id, SensorDto sensor); 
         Task<DeviceDto> CreateDeviceAsync(DeviceDto device);
         Task UpdateDeviceAsync(int id, DeviceDto device);
         Task DeleteDeviceAsync(int id);
@@ -28,44 +26,34 @@ namespace OOP_Lab4.Services
         private readonly HttpClient _httpClient = new();
         private string BaseUrl => $"{AppConfig.ApiBaseUrl}/task1";
 
-        private async Task EnsureSuccess(HttpResponseMessage response)
+        private void PrepareHeaders()
         {
-            if (!response.IsSuccessStatusCode)
+            _httpClient.DefaultRequestHeaders.Remove("x-admin-bypass");
+            if (!string.IsNullOrEmpty(AppConfig.AdminPassword))
             {
-                var err = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Помилка API Node.js: {err}");
+                _httpClient.DefaultRequestHeaders.Add("x-admin-bypass", AppConfig.AdminPassword);
             }
         }
 
-        public async Task<List<ChannelDto>> GetChannelsAsync() => await _httpClient.GetFromJsonAsync<List<ChannelDto>>($"{BaseUrl}/channels") ?? new();
-        public async Task<ChannelDto> GetChannelAsync(int id) => await _httpClient.GetFromJsonAsync<ChannelDto>($"{BaseUrl}/channels/{id}") ?? new();
-
-        public async Task<ChannelDto> CreateChannelAsync(ChannelDto channel)
+        private async Task EnsureSuccess(HttpResponseMessage response)
         {
-            var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/channels", channel);
-            await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<ChannelDto>() ?? new();
-        }
-        public async Task UpdateChannelAsync(int id, ChannelDto channel) { var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/channels/{id}", channel); await EnsureSuccess(r); }
-        public async Task DeleteChannelAsync(int id) { var r = await _httpClient.DeleteAsync($"{BaseUrl}/channels/{id}"); await EnsureSuccess(r); }
-
-        public async Task<SensorDto> CreateSensorAsync(SensorDto sensor)
-        {
-            var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/sensors", sensor);
-            await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<SensorDto>() ?? new();
-        }
-        
-        public async Task UpdateSensorAsync(int id, SensorDto sensor) 
-        { 
-            var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/sensors/{id}", sensor); 
-            await EnsureSuccess(r); 
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests) throw new Exception("DDOS_BLOCK");
+            if (!response.IsSuccessStatusCode)
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Помилка API: {err}");
+            }
         }
 
-        public async Task<DeviceDto> CreateDeviceAsync(DeviceDto device)
-        {
-            var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/devices", device);
-            await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<DeviceDto>() ?? new();
-        }
-        public async Task UpdateDeviceAsync(int id, DeviceDto device) { var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/devices/{id}", device); await EnsureSuccess(r); }
-        public async Task DeleteDeviceAsync(int id) { var r = await _httpClient.DeleteAsync($"{BaseUrl}/devices/{id}"); await EnsureSuccess(r); }
+        public async Task<List<ChannelDto>> GetChannelsAsync() { PrepareHeaders(); var r = await _httpClient.GetAsync($"{BaseUrl}/channels"); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<List<ChannelDto>>() ?? new(); }
+        public async Task<ChannelDto> GetChannelAsync(int id) { PrepareHeaders(); var r = await _httpClient.GetAsync($"{BaseUrl}/channels/{id}"); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<ChannelDto>() ?? new(); }
+        public async Task<ChannelDto> CreateChannelAsync(ChannelDto channel) { PrepareHeaders(); var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/channels", channel); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<ChannelDto>() ?? new(); }
+        public async Task UpdateChannelAsync(int id, ChannelDto channel) { PrepareHeaders(); var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/channels/{id}", channel); await EnsureSuccess(r); }
+        public async Task DeleteChannelAsync(int id) { PrepareHeaders(); var r = await _httpClient.DeleteAsync($"{BaseUrl}/channels/{id}"); await EnsureSuccess(r); }
+        public async Task<SensorDto> CreateSensorAsync(SensorDto sensor) { PrepareHeaders(); var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/sensors", sensor); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<SensorDto>() ?? new(); }
+        public async Task UpdateSensorAsync(int id, SensorDto sensor) { PrepareHeaders(); var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/sensors/{id}", sensor); await EnsureSuccess(r); }
+        public async Task<DeviceDto> CreateDeviceAsync(DeviceDto device) { PrepareHeaders(); var r = await _httpClient.PostAsJsonAsync($"{BaseUrl}/devices", device); await EnsureSuccess(r); return await r.Content.ReadFromJsonAsync<DeviceDto>() ?? new(); }
+        public async Task UpdateDeviceAsync(int id, DeviceDto device) { PrepareHeaders(); var r = await _httpClient.PutAsJsonAsync($"{BaseUrl}/devices/{id}", device); await EnsureSuccess(r); }
+        public async Task DeleteDeviceAsync(int id) { PrepareHeaders(); var r = await _httpClient.DeleteAsync($"{BaseUrl}/devices/{id}"); await EnsureSuccess(r); }
     }
 }

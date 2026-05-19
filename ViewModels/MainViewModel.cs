@@ -18,21 +18,17 @@ namespace OOP_Lab4.ViewModels
             set => SetProperty(ref _currentViewModel, value);
         }
 
-        // ==========================================
-        // Змінні для підсвічування кнопок 
-        // ==========================================
         private bool _isTask1Active = true;
-        public bool IsTask1Active 
-        { 
-            get => _isTask1Active; 
-            set => SetProperty(ref _isTask1Active, value); 
-        }
+        public bool IsTask1Active { get => _isTask1Active; set => SetProperty(ref _isTask1Active, value); }
 
         private bool _isTask2Active = false;
-        public bool IsTask2Active 
-        { 
-            get => _isTask2Active; 
-            set => SetProperty(ref _isTask2Active, value); 
+        public bool IsTask2Active { get => _isTask2Active; set => SetProperty(ref _isTask2Active, value); }
+
+        // ДОДАНО: Прив'язка пароля до AppConfig
+        public string AdminPassword
+        {
+            get => AppConfig.AdminPassword;
+            set { AppConfig.AdminPassword = value; OnPropertyChanged(); }
         }
 
         public ICommand ShowTask1Command { get; }
@@ -42,25 +38,24 @@ namespace OOP_Lab4.ViewModels
         public MainViewModel(IBrowserService browserService)
         {
             _browserService = browserService;
-            
             _currentViewModel = new Task1ViewModel(); 
 
             ShowTask1Command = new RelayCommand(_ => { 
                 CurrentViewModel = new Task1ViewModel();
-                IsTask1Active = true; 
-                IsTask2Active = false; 
+                IsTask1Active = true; IsTask2Active = false; 
             });
             
             ShowTask2Command = new RelayCommand(_ => { 
                 CurrentViewModel = new Task2ViewModel();
-                IsTask1Active = false; 
-                IsTask2Active = true; 
+                IsTask1Active = false; IsTask2Active = true; 
             });
             
-            OpenWebCommand = new RelayCommand(_ => _browserService.OpenUrl("http://localhost:3000/")); 
+            OpenWebCommand = new RelayCommand(_ => {
+                string webUrl = AppConfig.ApiBaseUrl.Replace("/api", "");
+                _browserService.OpenUrl(webUrl); 
+            }); 
         }
 
-        // Метод для генерації JSON (Для наступного етапу)
         public string GetCurrentJson()
         {
             var options = new JsonSerializerOptions { WriteIndented = true };

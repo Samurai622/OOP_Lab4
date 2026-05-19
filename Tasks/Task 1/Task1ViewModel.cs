@@ -89,208 +89,107 @@ namespace OOP_Lab4.Tasks.Task1
            ((RelayCommand)EditChannelCommand).RaiseCanExecuteChanged();
            ((RelayCommand)DeleteChannelCommand).RaiseCanExecuteChanged();
        }
-
        private async Task LoadChannelsAsync()
         {
             try {
                 var channels = await _apiService.GetChannelsAsync();
                 Channels.Clear();
-
                 int orderCounter = 1; 
-                foreach (var c in channels) 
-                {
-                    c.ShortInfo = $"Вимірювальний канал №{orderCounter} ({c.Name ?? "Без назви"})";
-                    Channels.Add(c);
-                    orderCounter++; 
-                }
-
+                foreach (var c in channels) { c.ShortInfo = $"Вимірювальний канал №{orderCounter} ({c.Name ?? "Без назви"})"; Channels.Add(c); orderCounter++; }
                 ChannelModel.SetTotalCount(Channels.Count); 
                 SelectedChannel = Channels.FirstOrDefault();
-
-                // Логіка повідомлення
-                if (Channels.Count == 0)
-                    SyncStatusMessage = "База даних пуста!";
-                else
-                    SyncStatusMessage = "Успішно синхронізовано!";
-
-                // Очищаємо повідомлення через 3 секунди (щоб не висіло вічно)
+                if (Channels.Count == 0) SyncStatusMessage = "База даних пуста!"; else SyncStatusMessage = "Успішно синхронізовано!";
                 _ = Task.Delay(3000).ContinueWith(_ => SyncStatusMessage = string.Empty, TaskScheduler.FromCurrentSynchronizationContext());
-                
             } catch(Exception ex) { 
-                SyncStatusMessage = "Помилка з'єднання!";
-                Console.WriteLine($"Помилка синхронізації: {ex.Message}"); 
+                if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                else SyncStatusMessage = "Помилка з'єднання!"; 
+                Console.WriteLine($"Помилка: {ex.Message}"); 
             }
         }
 
-       private async Task LoadDevicesForChannelAsync()
-       {
-           Devices.Clear();
-           if (SelectedChannel == null) return;
+        private async Task LoadDevicesForChannelAsync()
+        {
+            Devices.Clear(); if (SelectedChannel == null) return;
+            try {
+                var fullChannel = await _apiService.GetChannelAsync(SelectedChannel.Id);
+                if (fullChannel?.Devices != null) foreach (var d in fullChannel.Devices) Devices.Add(d);
+            } catch(Exception ex) { 
+                if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                Console.WriteLine($"Помилка: {ex.Message}"); 
+            }
+        }
 
-           try {
-               var fullChannel = await _apiService.GetChannelAsync(SelectedChannel.Id);
-               if (fullChannel?.Devices != null)
-               {
-                   foreach (var d in fullChannel.Devices) Devices.Add(d);
-               }
-           } catch(Exception ex) { Console.WriteLine($"Помилка завантаження пристроїв: {ex.Message}"); }
-       }
+        private async Task AddChannelAsync()
+        {
+            if (OpenChannelDialogAsync == null) return;
+            ChannelModel.SetTotalCount(Channels.Count); 
+            var newModel = new ChannelModel();
+            var result = await OpenChannelDialogAsync(newModel);
+            
+            if (result != null) {
+                try {
+                    await _apiService.CreateChannelAsync(new ChannelDto { Name = result.Name });
+                    await LoadChannelsAsync(); 
+                } catch(Exception ex) { if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!"; Console.WriteLine($"Помилка: {ex.Message}"); }
+            } else { ChannelModel.SetTotalCount(Channels.Count); }
+        }
 
-       // ======================= ЛОГІКА КАНАЛІВ =======================
-       private async Task AddChannelAsync()
-       {
-           if (OpenChannelDialogAsync == null) return;
+        private async Task EditChannelAsync()
+        {
+            if (OpenChannelDialogAsync == null || SelectedChannel == null) return;
+            int currentOrderNumber = Channels.IndexOf(SelectedChannel) + 1;
+            var editModel = new ChannelModel(currentOrderNumber) { Id = SelectedChannel.Id, Name = SelectedChannel.Name };
+            var result = await OpenChannelDialogAsync(editModel);
+            if (result != null) {
+                try {
+                    await _apiService.UpdateChannelAsync(result.Id, new ChannelDto { Name = result.Name });
+                    await LoadChannelsAsync(); 
+                } catch(Exception ex) { if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!"; Console.WriteLine($"Помилка: {ex.Message}"); }
+            }
+        }
 
-           // 1. ПЕРЕД створенням тимчасового об'єкта жорстко синхронізуємо лічильник
-           // з реальною кількістю каналів, які ми отримали з БД.
-           ChannelModel.SetTotalCount(Channels.Count);
+        private async Task DeleteChannelAsync()
+        {
+            if (SelectedChannel == null) return;
+            try { await _apiService.DeleteChannelAsync(SelectedChannel.Id); await LoadChannelsAsync(); } 
+            catch(Exception ex) { if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!"; Console.WriteLine($"Помилка: {ex.Message}"); }
+        }
 
-           // 2. Створюємо тимчасовий об'єкт для вікна.
-           // Конструктор всередині зробить _totalChannelsCreated++ і дасть правильний номер.
-           var newModel = new ChannelModel();
-          
-           var result = await OpenChannelDialogAsync(newModel);
-          
-           if (result != null)
-           {
-               // Якщо користувач натиснув "Зберегти"
-               try {
-                   await _apiService.CreateChannelAsync(new ChannelDto { Name = result.Name });
-                   await LoadChannelsAsync(); // Це перезавантажить список і ще раз синхронізує лічильник
-               } catch(Exception ex) { Console.WriteLine($"Помилка: {ex.Message}"); }
-           }
-           else
-           {
-               // 3. ФІКС БАГУ: Якщо користувач натиснув "Скасувати" (закрив вікно),
-               // тимчасовий об'єкт знищується. Нам треба відкотити лічильник назад.
-               ChannelModel.SetTotalCount(Channels.Count);
-           }
-       }
+        private async Task AddDeviceAsync()
+        {
+            if (OpenEditDialogAsync == null || SelectedChannel == null) return;
+            var newModel = new DeviceModel();
+            var result = await OpenEditDialogAsync(newModel);
+            if (result != null) {
+                try {
+                    var sensorDto = await _apiService.CreateSensorAsync(new SensorDto { MagnitudeType = (int)result.Sensor.MagType, MinRange = result.Sensor.MinRange, MaxRange = result.Sensor.MaxRange, CurrentValue = result.Sensor.CurrentValue });
+                    await _apiService.CreateDeviceAsync(new DeviceDto { ChannelId = SelectedChannel.Id, SensorId = sensorDto.Id, LocationNumber = result.LocationNumber, CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd") });
+                    await LoadDevicesForChannelAsync();
+                } catch(Exception ex) { if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!"; Console.WriteLine($"Помилка: {ex.Message}"); }
+            }
+        }
 
-       private async Task EditChannelAsync()
-       {
-           if (OpenChannelDialogAsync == null || SelectedChannel == null) return;
-
-           // Вираховуємо поточний порядковий номер каналу (його позиція у списку + 1)
-           int currentOrderNumber = Channels.IndexOf(SelectedChannel) + 1;
-
-           // Використовуємо новий конструктор, який НЕ збільшує статичний лічильник
-           var editModel = new ChannelModel(currentOrderNumber)
-           {
-               Id = SelectedChannel.Id,
-               Name = SelectedChannel.Name
-           };
-          
-           var result = await OpenChannelDialogAsync(editModel);
-          
-           if (result != null)
-           {
-               try {
-                   await _apiService.UpdateChannelAsync(result.Id, new ChannelDto { Name = result.Name });
-                   await LoadChannelsAsync(); // Це також скине лічильник до правильної кількості
-               } catch(Exception ex) { Console.WriteLine($"Помилка: {ex.Message}"); }
-           }
-       }
-
-       private async Task DeleteChannelAsync()
-       {
-           if (SelectedChannel == null) return;
-           try {
-               await _apiService.DeleteChannelAsync(SelectedChannel.Id);
-               await LoadChannelsAsync();
-           } catch(Exception ex) { Console.WriteLine($"Помилка видалення: {ex.Message}"); }
-       }
-
-       // ======================= ЛОГІКА ПРИСТРОЇВ =======================
-       private async Task AddDeviceAsync()
-       {
-           if (OpenEditDialogAsync == null || SelectedChannel == null) return;
-
-           var newModel = new DeviceModel();
-           var result = await OpenEditDialogAsync(newModel);
-          
-           if (result != null)
-           {
-               try
-               {
-                   var sensorDto = await _apiService.CreateSensorAsync(new SensorDto {
-                       MagnitudeType = (int)result.Sensor.MagType,
-                       MinRange = result.Sensor.MinRange,
-                       MaxRange = result.Sensor.MaxRange,
-                       CurrentValue = result.Sensor.CurrentValue
-                   });
-
-                   await _apiService.CreateDeviceAsync(new DeviceDto {
-                       ChannelId = SelectedChannel.Id,
-                       SensorId = sensorDto.Id,
-                       LocationNumber = result.LocationNumber,
-                       CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd")
-                   });
-
-                   await LoadDevicesForChannelAsync();
-               }
-               catch (Exception ex) { Console.WriteLine($"Помилка: {ex.Message}"); }
-           }
-       }
-
-       private async Task EditDeviceAsync()
+        private async Task EditDeviceAsync()
         {
             if (OpenEditDialogAsync == null || SelectedDevice == null) return;
-
-            var editModel = new DeviceModel
-            {
-                Id = SelectedDevice.Id,
-                LocationNumber = SelectedDevice.LocationNumber,
-                CalibrationDate = DateTimeOffset.Parse(SelectedDevice.CalibrationDate)
-            };
-            
-            if (SelectedDevice.Sensor != null)
-            {
-                editModel.Sensor.MagType = (MagnitudeType)SelectedDevice.Sensor.MagnitudeType;
-                editModel.Sensor.MinRange = SelectedDevice.Sensor.MinRange;
-                editModel.Sensor.MaxRange = SelectedDevice.Sensor.MaxRange;
-                editModel.Sensor.CurrentValue = SelectedDevice.Sensor.CurrentValue;
-            }
-
+            var editModel = new DeviceModel { Id = SelectedDevice.Id, LocationNumber = SelectedDevice.LocationNumber, CalibrationDate = DateTimeOffset.Parse(SelectedDevice.CalibrationDate) };
+            if (SelectedDevice.Sensor != null) { editModel.Sensor.MagType = (MagnitudeType)SelectedDevice.Sensor.MagnitudeType; editModel.Sensor.MinRange = SelectedDevice.Sensor.MinRange; editModel.Sensor.MaxRange = SelectedDevice.Sensor.MaxRange; editModel.Sensor.CurrentValue = SelectedDevice.Sensor.CurrentValue; }
             var result = await OpenEditDialogAsync(editModel);
-            if (result != null)
-            {
+            if (result != null) {
                 try {
-                    // ФІКС: Оновлюємо існуючий сенсор з УСІМА правильними даними
-                    if (SelectedDevice.SensorId.HasValue)
-                    {
-                        await _apiService.UpdateSensorAsync(SelectedDevice.SensorId.Value, new SensorDto {
-                            MagnitudeType = (int)result.Sensor.MagType,
-                            MinRange = result.Sensor.MinRange,
-                            MaxRange = result.Sensor.MaxRange,
-                            CurrentValue = result.Sensor.CurrentValue
-                        });
-                    }
-
-                    // Оновлюємо пристрій (без зміни SensorId)
-                    await _apiService.UpdateDeviceAsync(result.Id, new DeviceDto {
-                        LocationNumber = result.LocationNumber,
-                        CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd"),
-                        ChannelId = SelectedChannel.Id,
-                        SensorId = SelectedDevice.SensorId                     
-                    });
-                    
+                    if (SelectedDevice.SensorId.HasValue) { await _apiService.UpdateSensorAsync(SelectedDevice.SensorId.Value, new SensorDto { MagnitudeType = (int)result.Sensor.MagType, MinRange = result.Sensor.MinRange, MaxRange = result.Sensor.MaxRange, CurrentValue = result.Sensor.CurrentValue }); }
+                    await _apiService.UpdateDeviceAsync(result.Id, new DeviceDto { LocationNumber = result.LocationNumber, CalibrationDate = result.CalibrationDate.ToString("yyyy-MM-dd"), ChannelId = SelectedChannel.Id, SensorId = SelectedDevice.SensorId });
                     await LoadDevicesForChannelAsync();
-                } catch (Exception ex) { 
-                    SyncStatusMessage = "Помилка валідації!";
-                    Console.WriteLine($"Помилка: {ex.Message}"); 
-                }
+                } catch(Exception ex) { if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!"; Console.WriteLine($"Помилка: {ex.Message}"); }
             }
         }
 
-       private async Task DeleteDeviceAsync()
-       {
-           if (SelectedDevice == null) return;
-           try {
-               await _apiService.DeleteDeviceAsync(SelectedDevice.Id);
-               await LoadDevicesForChannelAsync();
-           } catch(Exception ex) { Console.WriteLine($"Помилка видалення: {ex.Message}"); }
-       }
+        private async Task DeleteDeviceAsync()
+        {
+            if (SelectedDevice == null) return;
+            try { await _apiService.DeleteDeviceAsync(SelectedDevice.Id); await LoadDevicesForChannelAsync(); } 
+            catch(Exception ex) { if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!"; Console.WriteLine($"Помилка: {ex.Message}"); }
+        }
    }
 }
 

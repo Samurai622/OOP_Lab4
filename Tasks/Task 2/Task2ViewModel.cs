@@ -31,7 +31,7 @@ namespace OOP_Lab4.Tasks.Task2
             set { SetProperty(ref _selectedPerf, value); UpdateCommands(); }
         }
 
-        // ДОДАНО: Повідомлення про статус синхронізації
+        // Змінна для повідомлень (База пуста, Успішно, DDoS тощо)
         private string _syncStatusMessage = string.Empty;
         public string SyncStatusMessage
         {
@@ -62,6 +62,7 @@ namespace OOP_Lab4.Tasks.Task2
             DelPerfCmd = new RelayCommand(async _ => await DelPerf(), _ => SelectedPerformance != null);
 
             SyncCmd = new RelayCommand(async _ => await LoadCompetitionsAsync());
+            
             _ = LoadCompetitionsAsync();
         }
 
@@ -92,17 +93,13 @@ namespace OOP_Lab4.Tasks.Task2
                 else
                     SelectedCompetition = Competitions.FirstOrDefault();
 
-                // ДОДАНО: Логіка повідомлення
-                if (Competitions.Count == 0)
-                    SyncStatusMessage = "База даних пуста!";
-                else
-                    SyncStatusMessage = "Успішно синхронізовано!";
-
-                // Очищаємо повідомлення через 3 секунди
+                if (Competitions.Count == 0) SyncStatusMessage = "База даних пуста!";
+                else SyncStatusMessage = "Успішно синхронізовано!";
                 _ = Task.Delay(3000).ContinueWith(_ => SyncStatusMessage = string.Empty, TaskScheduler.FromCurrentSynchronizationContext());
 
             } catch(Exception ex) { 
-                SyncStatusMessage = "Помилка з'єднання!";
+                if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                else SyncStatusMessage = "Помилка з'єднання!";
                 Console.WriteLine($"Помилка: {ex.Message}"); 
             }
         }
@@ -117,40 +114,72 @@ namespace OOP_Lab4.Tasks.Task2
                 {
                     foreach (var p in comp.Performances) Performances.Add(p);
                 }
-                PerformanceModel.SetTotalCount(Performances.Count); // Лічильник для варіанту
-            } catch(Exception ex) { Console.WriteLine($"Помилка: {ex.Message}"); }
+                PerformanceModel.SetTotalCount(Performances.Count); 
+            } catch(Exception ex) { 
+                if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                Console.WriteLine($"Помилка: {ex.Message}"); 
+            }
         }
 
         private async Task AddComp()
         {
             if (OpenCompDialog == null) return;
             var res = await OpenCompDialog(new CompetitionModel());
-            if (res != null) { await _apiService.CreateCompetitionAsync(new CompetitionDto{Name=res.Name}); await LoadCompetitionsAsync(); }
+            if (res != null) { 
+                try {
+                    await _apiService.CreateCompetitionAsync(new CompetitionDto{Name=res.Name}); 
+                    await LoadCompetitionsAsync(); 
+                } catch(Exception ex) { 
+                    if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                    Console.WriteLine($"Помилка: {ex.Message}"); 
+                }
+            }
         }
 
         private async Task EditComp()
         {
             if (OpenCompDialog == null || SelectedCompetition == null) return;
             var res = await OpenCompDialog(new CompetitionModel{Id=SelectedCompetition.Id, Name=SelectedCompetition.Name});
-            if (res != null) { await _apiService.UpdateCompetitionAsync(res.Id, new CompetitionDto{Name=res.Name}); await LoadCompetitionsAsync(); }
+            if (res != null) { 
+                try {
+                    await _apiService.UpdateCompetitionAsync(res.Id, new CompetitionDto{Name=res.Name}); 
+                    await LoadCompetitionsAsync(); 
+                } catch(Exception ex) { 
+                    if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                    Console.WriteLine($"Помилка: {ex.Message}"); 
+                }
+            }
         }
 
         private async Task DelComp()
         {
-            if (SelectedCompetition != null) { await _apiService.DeleteCompetitionAsync(SelectedCompetition.Id); await LoadCompetitionsAsync(); }
+            if (SelectedCompetition == null) return;
+            try { 
+                await _apiService.DeleteCompetitionAsync(SelectedCompetition.Id); 
+                await LoadCompetitionsAsync(); 
+            } catch(Exception ex) { 
+                if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                Console.WriteLine($"Помилка: {ex.Message}"); 
+            }
         }
 
         private async Task AddPerf()
         {
             if (OpenPerfDialog == null || SelectedCompetition == null) return;
-            PerformanceModel.SetTotalCount(Performances.Count); // Фікс лічильника
+            PerformanceModel.SetTotalCount(Performances.Count); 
             var res = await OpenPerfDialog(new PerformanceModel());
             
             if (res != null)
             {
-                var partDto = await _apiService.CreateParticipantAsync(new ParticipantDto { FirstName=res.Participant.FirstName, LastName=res.Participant.LastName, BirthDate=res.Participant.BirthDate.ToString("yyyy-MM-dd") });
-                await _apiService.CreatePerformanceAsync(new PerformanceDto { CompetitionId=SelectedCompetition.Id, ParticipantId=partDto.Id, IsTeam=res.IsTeam, ResultScore=res.ResultScore });
-                await LoadPerformancesAsync(); await LoadCompetitionsAsync(); // Оновлюємо переможця в ComboBox
+                try {
+                    var partDto = await _apiService.CreateParticipantAsync(new ParticipantDto { FirstName=res.Participant.FirstName, LastName=res.Participant.LastName, BirthDate=res.Participant.BirthDate.ToString("yyyy-MM-dd") });
+                    await _apiService.CreatePerformanceAsync(new PerformanceDto { CompetitionId=SelectedCompetition.Id, ParticipantId=partDto.Id, IsTeam=res.IsTeam, ResultScore=res.ResultScore });
+                    await LoadPerformancesAsync(); 
+                    await LoadCompetitionsAsync(); 
+                } catch(Exception ex) { 
+                    if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                    Console.WriteLine($"Помилка: {ex.Message}"); 
+                }
             }
             else { PerformanceModel.SetTotalCount(Performances.Count); }
         }
@@ -158,14 +187,11 @@ namespace OOP_Lab4.Tasks.Task2
         private async Task EditPerf()
         {
             if (OpenPerfDialog == null || SelectedPerformance == null) return;
-            
             int num = Performances.IndexOf(SelectedPerformance) + 1;
             
             DateTimeOffset parsedDate = DateTimeOffset.Now;
             if (!string.IsNullOrEmpty(SelectedPerformance.Participant?.BirthDate))
-            {
                 DateTimeOffset.TryParse(SelectedPerformance.Participant.BirthDate, out parsedDate);
-            }
 
             var editModel = new PerformanceModel(num) { 
                 Id = SelectedPerformance.Id, 
@@ -179,12 +205,9 @@ namespace OOP_Lab4.Tasks.Task2
             };
             
             var res = await OpenPerfDialog(editModel);
-            
             if (res != null)
             {
-                try 
-                {
-                    // 1. ОНОВЛЮЄМО УЧАСНИКА (Його ім'я, прізвище, дату)
+                try {
                     if (SelectedPerformance.ParticipantId.HasValue)
                     {
                         await _apiService.UpdateParticipantAsync(SelectedPerformance.ParticipantId.Value, new ParticipantDto {
@@ -193,9 +216,6 @@ namespace OOP_Lab4.Tasks.Task2
                             BirthDate = res.Participant.BirthDate.ToString("yyyy-MM-dd")
                         });
                     }
-
-                    // 2. ОНОВЛЮЄМО ВИСТУП 
-                    // ФІКС: Ми НЕ відправляємо CompetitionId та ParticipantId. Вони залишаться старими в БД!
                     await _apiService.UpdatePerformanceAsync(res.Id, new PerformanceDto { 
                         IsTeam = res.IsTeam, 
                         ResultScore = res.ResultScore 
@@ -203,14 +223,24 @@ namespace OOP_Lab4.Tasks.Task2
                     
                     await LoadPerformancesAsync(); 
                     await LoadCompetitionsAsync(); 
+                } catch(Exception ex) { 
+                    if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                    Console.WriteLine($"Помилка: {ex.Message}"); 
                 }
-                catch (Exception ex) { Console.WriteLine($"Помилка: {ex.Message}"); }
             }
         }
 
         private async Task DelPerf()
         {
-            if (SelectedPerformance != null) { await _apiService.DeletePerformanceAsync(SelectedPerformance.Id); await LoadPerformancesAsync(); await LoadCompetitionsAsync(); }
+            if (SelectedPerformance == null) return;
+            try { 
+                await _apiService.DeletePerformanceAsync(SelectedPerformance.Id); 
+                await LoadPerformancesAsync(); 
+                await LoadCompetitionsAsync(); 
+            } catch(Exception ex) { 
+                if (ex.Message.Contains("DDOS_BLOCK")) SyncStatusMessage = "Введіть пароль зліва!";
+                Console.WriteLine($"Помилка: {ex.Message}"); 
+            }
         }
     }
 }
